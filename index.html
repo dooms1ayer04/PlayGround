@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0708">
+  <title>Hellfire Protocol</title>
+  <meta name="description" content="A short, punchy Doom-inspired arena shooter. Purge the cult before their fire consumes you.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b0708'/%3E%3Cpath d='M32 7c4 11 17 15 17 30 0 12-8 20-17 20S15 49 15 37C15 27 22 22 27 15c0 8 5 12 9 15 2-8-2-16-4-23z' fill='%23ff5a16'/%3E%3Cpath d='M32 29c2 6 8 9 8 17 0 6-4 10-8 10s-8-4-8-10c0-6 5-9 8-17z' fill='%23ffd36a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main id="game-shell">
+    <canvas id="game" aria-label="Hellfire Protocol game view"></canvas>
+
+    <div class="screen-fx" aria-hidden="true">
+      <div class="vignette"></div>
+      <div class="scanlines"></div>
+      <div id="damage-flash"></div>
+      <div id="heal-flash"></div>
+    </div>
+
+    <section id="hud" class="hud is-hidden" aria-live="polite">
+      <div class="hud-top">
+        <div class="brand-mini">
+          <span class="brand-mark">H</span>
+          <span>HELLFIRE<br><b>PROTOCOL</b></span>
+        </div>
+        <div class="objective">
+          <span class="eyebrow">OBJECTIVE</span>
+          <strong id="objective-text">Purge the cult</strong>
+        </div>
+      </div>
+
+      <div class="wave-chip">
+        <span id="wave-number">WAVE 01</span>
+        <i></i>
+        <span id="hostile-count">4 HOSTILES</span>
+      </div>
+
+      <div class="minimap-shell">
+        <div class="minimap-label"><span>LOCAL FEED</span><b id="minimap-sector">SECTOR 09</b></div>
+        <div class="minimap-frame">
+          <canvas id="minimap" width="180" height="180"></canvas>
+          <span class="north">N</span>
+        </div>
+      </div>
+
+      <div id="crosshair" class="crosshair" aria-hidden="true">
+        <i class="ch-top"></i><i class="ch-right"></i><i class="ch-bottom"></i><i class="ch-left"></i>
+        <span class="ch-dot"></span>
+        <span class="hitmarker"><i></i><i></i><i></i><i></i></span>
+      </div>
+
+      <div id="announcement" class="announcement" aria-live="assertive">
+        <span class="ann-kicker">THE GATE STIRS</span>
+        <strong class="ann-title">WAVE 01</strong>
+      </div>
+
+      <div id="toast-stack" class="toast-stack"></div>
+
+      <div class="statusbar">
+        <div class="vitals">
+          <div class="status-label">VITALS</div>
+          <div class="vital-row">
+            <span id="health-value">100</span>
+            <div class="vital-copy">
+              <span>CONDITION</span>
+              <div class="meter"><i id="health-fill"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="weapon-status">
+          <div class="status-label">PYRO-CARBINE</div>
+          <div class="weapon-line">
+            <span class="weapon-icon" aria-hidden="true">⌁</span>
+            <div class="heat">
+              <span>EMBER ROUNDS</span>
+              <div class="meter heat-meter"><i id="heat-fill"></i></div>
+            </div>
+            <b class="ammo">∞</b>
+          </div>
+        </div>
+
+        <div class="score-status">
+          <div class="status-label">BANISHED</div>
+          <div class="score-line"><b id="kills-value">00</b><span>/ 12</span></div>
+          <div class="score-total"><span>SCORE</span><b id="score-value">000000</b></div>
+        </div>
+      </div>
+
+      <div class="lock-hint" id="lock-hint">CLICK TO LOCK AIM <span>·</span> ESC TO PAUSE</div>
+
+      <div class="touch-ui" aria-hidden="true">
+        <div id="look-zone" class="look-zone">
+          <span>DRAG TO LOOK</span>
+        </div>
+        <div id="joystick" class="joystick">
+          <div class="joystick-ring"></div>
+          <div id="joystick-knob" class="joystick-knob"></div>
+          <span>MOVE</span>
+        </div>
+        <button id="fire-button" class="fire-button" type="button" aria-label="Fire weapon">
+          <span class="fire-glyph">✹</span>
+          <span>FIRE</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="start-screen" class="start-screen">
+      <div class="start-grain" aria-hidden="true"></div>
+      <div class="start-topline">
+        <span>AN OMGITHUB ORIGINAL</span>
+        <span class="signal"><i></i> GATE SIGNAL: CRITICAL</span>
+      </div>
+
+      <div class="start-layout">
+        <div class="start-copy">
+          <p class="start-kicker">THE CULT HAS OPENED THE GATE</p>
+          <h1 class="logo" aria-label="Hellfire Protocol">
+            <span class="logo-hell">HELL</span><span class="logo-fire">FIRE</span>
+            <em>PROTOCOL</em>
+          </h1>
+          <p class="start-deck">You are the last thing standing between a burning congregation and the rest of the world. Go in. Break the altar. Leave nothing breathing.</p>
+
+          <div class="start-actions">
+            <button id="start-button" class="start-button" type="button" aria-label="START">
+              <span class="start-button-label">START</span>
+              <span class="start-button-arrow" aria-hidden="true">→</span>
+            </button>
+            <div class="control-grid">
+              <div><kbd>WASD</kbd><span>MOVE</span></div>
+              <div><kbd>MOUSE</kbd><span>AIM</span></div>
+              <div><kbd>CLICK</kbd><span>FIRE</span></div>
+              <div><kbd>ESC</kbd><span>PAUSE</span></div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="start-brief">
+          <div class="brief-stamp">BRIEFING 09</div>
+          <div class="brief-art" aria-hidden="true">
+            <div class="sigil"><i></i><i></i><i></i></div>
+            <span class="brief-number">09</span>
+          </div>
+          <dl>
+            <div><dt>HOSTILES</dt><dd>12</dd></div>
+            <div><dt>WAVES</dt><dd>03</dd></div>
+            <div><dt>EXTRACTION</dt><dd>NONE</dd></div>
+          </dl>
+          <p>Their fire is slow enough to dodge. Keep moving. Put them down before the room fills with flame.</p>
+          <span class="brief-warning">NO REINFORCEMENTS</span>
+        </aside>
+      </div>
+
+      <footer class="start-footer">
+        <span>BUILT FOR THE BROWSER · NO DOWNLOAD</span>
+        <span class="headphones">HEADPHONES RECOMMENDED</span>
+      </footer>
+    </section>
+
+    <section id="pause-screen" class="modal-screen is-hidden">
+      <div class="modal-card">
+        <span class="modal-kicker">SIGNAL HELD</span>
+        <h2>PAUSED</h2>
+        <p>The gate will wait. Probably.</p>
+        <button id="resume-button" class="modal-button" type="button">RESUME</button>
+        <button id="pause-quit" class="text-button" type="button">ABANDON RUN</button>
+      </div>
+    </section>
+
+    <section id="end-screen" class="modal-screen is-hidden">
+      <div class="modal-card end-card">
+        <span id="end-kicker" class="modal-kicker">SIGNAL LOST</span>
+        <h2 id="end-title">YOU BURNED</h2>
+        <p id="end-copy">The congregation keeps its gate.</p>
+        <div class="end-stats">
+          <div><span>BANISHED</span><b id="end-kills">0</b></div>
+          <div><span>SCORE</span><b id="end-score">0</b></div>
+          <div><span>WAVE</span><b id="end-wave">1</b></div>
+        </div>
+        <button id="restart-button" class="modal-button" type="button">RESTART</button>
+      </div>
+    </section>
+
+    <div class="rotate-note" aria-hidden="true">BEST PLAYED IN LANDSCAPE</div>
+  </main>
+
+  <script src="./art.js"></script>
+  <script src="./sprites.js"></script>
+  <script src="./audio.js"></script>
+  <script src="./world.js"></script>
+  <script src="./game.js"></script>
+</body>
+</html>
